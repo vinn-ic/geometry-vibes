@@ -8,7 +8,7 @@ SRC = main.cpp
 INCLUDE = -I"C:/raylib/src"
 LIBS = -L"C:/raylib/build/raylib" -lraylib -lopengl32 -lgdi32 -lwinmm
 
-# Compilador
+# Compiladorg
 CXX = g++
 
 # Regras
