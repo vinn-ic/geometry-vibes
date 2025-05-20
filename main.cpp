@@ -7,6 +7,7 @@
 
 using namespace std;
 
+
 class Player{
     public:
 
@@ -16,12 +17,16 @@ class Player{
         int spawX = 50;
         bool boolIsDown = true;
         bool isDeath = true;
+        Vector2 v1, v2, v3;
+        Rectangle rectColission;
+
 
        
 
     public:
         Player(Vector2 rect) {
             this->rect = rect;
+            this->rectColission = {rect.x,rect.y};
             
         }
 
@@ -48,10 +53,15 @@ class Player{
 
             if(rect.y <= 0) rect.y=0;
             if(rect.y >= 900-size) rect.y=900-size;
+
+            rectColission = {rect.x,rect.y};
         }
 
         void drawPlayer() {
-            Vector2 v1, v2, v3;
+
+            DrawRectangle(rect.x,rect.y,(rect.x-5)-rect.x+size,(rect.y-rect.y+size),(Color){ 0, 0, 0, 0 });
+
+            
             if (boolIsDown) {
                 // Triângulo apontando para baixo
                 v1 = {rect.x-5, rect.y}; // ponta de cima
@@ -65,62 +75,111 @@ class Player{
             DrawTriangle(v1, v2, v3, BLUE);             
                 
                 
-                //if(CheckCollisionPointRec(v1,ground) || CheckCollisionPointRec(v2,ground) || CheckCollisionPointRec(v3,ground)){
-                    //if(ground.y > 0 || ground.y < telaY){
-                        //rect.x = spawX;
-                        //rect.y = 400;
-                        //isDeath = true;
-                    //}
-                //}
+                
             }
 };
-class LgGame : public Player{
+class LgGame{
 public:
     bool isMenu;
     int telaX = 1200;
     int telaY = 900;
+
+    int maior;//remover isso depois!!!!!!!!!!
+    int menor=400;//remover isso depois!!!!!!!!!!
+
     vector<int> grounds = {300};
     
-    LgGame(bool isMenu = true,Vector2 rect = {350,400}) : Player(rect){
+    vector<Rectangle> groundsForColissionTop = {};
+    vector<Rectangle> groundsForColissionDown = {};
+
+    
+    LgGame(bool isMenu = true,Vector2 rect = {350,400}){
         this->isMenu = isMenu;
     }
 
+    void colisao(Rectangle rectColission, Player& player){
+        for(Rectangle ground : groundsForColissionTop){
+            if(CheckCollisionRecs(rectColission,ground)){
+                
+                player.rect.x = 50;
+                player.rect.y = 300;
+                player.isDeath = true;   
+                grounds.clear();
+                groundsForColissionDown.clear();
+                groundsForColissionTop.clear();
+            }
+        }
+        for(Rectangle ground : groundsForColissionDown){
+            if(CheckCollisionRecs(rectColission,ground)){
+                
+                player.rect.x = 50;
+                player.rect.y = 300;
+                player.isDeath = true;
+                grounds.clear();
+                groundsForColissionDown.clear();
+                groundsForColissionTop.clear();
+            }
+        }
+
+    }
+
     void GerarParedes(Vector2 Player){
-        int xGTop = 550;
-        int largura = 50; 
-        int segGround = 250;
+        float xGTop = 550;
+        float largura = 50; 
+        int segGround = 350;
 
         int ultimoRanom = 400;
+        int intervaloRandom;
+        int numberRandom;
 
         
         //random grounds!!
         random_device rd;
         random_device rd2;
+        
 
         mt19937 gen(rd());
         mt19937 gen2(rd2());
 
-        uniform_int_distribution<> dist(ultimoRanom-50,ultimoRanom+50);//numero que pode ser gerados!!
-        uniform_int_distribution<> dist2(200,300);
+        
+        uniform_int_distribution<> dist2(50,100);
+        intervaloRandom = dist2(gen2);
+
+        uniform_int_distribution<> dist(ultimoRanom-intervaloRandom,ultimoRanom+intervaloRandom); //numero que pode ser gerados!!
 
 
-        int numberRan = dist(gen);
-        ultimoRanom = numberRan;
+        numberRandom = dist(gen);
+        ultimoRanom = numberRandom;
         cout << ultimoRanom << "\n";
 
-        grounds.push_back(numberRan);
 
-        segGround = dist2(gen2);
+        if(ultimoRanom > maior){
+            maior = ultimoRanom;
+            cout << "maior: " << maior << "\n";
+        }else if(ultimoRanom < menor){
+            menor = ultimoRanom;
+            cout << "menor: " << menor << "\n";
+        }
+
+        grounds.push_back(numberRandom);
+
+       
 
         for(int ground : grounds){
      
-            int toppAltura = ground - (segGround/2);
-            int baseY = ground + (segGround/2);
-            int baseAltura = telaY - baseY;
+            float toppAltura = ground - (segGround/2);
+            float baseY = ground + (segGround/2);
+            float baseAltura = telaY - baseY;
 
 
-            DrawRectangle(xGTop,0,largura,toppAltura,RED);//deixar a largura maior!!!!!!!! ver se isso esta funcionando
-            DrawRectangle(xGTop,baseY,largura,baseAltura,YELLOW);
+            DrawRectangle(xGTop,0,largura,toppAltura,RED);//baixo
+            DrawRectangle(xGTop,baseY,largura,baseAltura,RED);//cima
+            Rectangle valoresbaixo = {xGTop,0,largura,toppAltura};
+            Rectangle valoresCima = {xGTop,baseY,largura,baseAltura};
+
+            groundsForColissionTop.push_back(valoresCima);
+            groundsForColissionDown.push_back(valoresbaixo);
+
             xGTop +=largura; 
      
         }
@@ -138,16 +197,14 @@ public:
 //vector<Rectangle> grounds;
 
 Vector2 Vector2Lerp(Vector2 start, Vector2 end, float alpha) {
-    return (Vector2){
-    start.x + alpha * (end.x - start.x),
-    start.y = 900/2//telaY/2!
-    };
+    start.y = 900/2; //telaY/2!
+    return (Vector2) { start.x + alpha * (end.x - start.x), 900/2 };
 }
 
 
 
 int main(){
-    Player player({350,400});
+    Player player({50,400});
     //350,50
     LgGame lgGame(true);
 
@@ -201,9 +258,10 @@ int main(){
         lgGame.GerarParedes(player.rect);
            
         player.move();
+        lgGame.colisao(player.rectColission, player);
         player.drawPlayer();
         
-
+        DrawRectangle(player.rect.x-400,70,150,80,YELLOW);
         DrawText(TextFormat("%.1fM", player.rect.x - 50), player.rect.x - 350, 70, 20, BLUE);
 
         EndMode2D();
@@ -213,8 +271,12 @@ int main(){
 }
 
 CloseWindow(); // Libera recursos
+
+cout << "maior: " << lgGame.maior << "\n";
+cout << "menor: " << lgGame.menor << "\n";
+
 return 0;
 }
 
 
-//g++ main.cpp -o main.exe -I"D:/raylib/src" -L"D:/raylib/build/raylib" -lraylib -lopengl32 -lgdi32 -lwinmmmian
+//g++ main.cpp -o main.exe -I"D:/raylib/src" -L"D:/raylib/build/raylib" -lraylib -lopengl32 -lgdi32 -lwinmm
