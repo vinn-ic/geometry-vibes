@@ -11,6 +11,7 @@ using namespace std;
 float spawPadrao = -300;
 int velocidade = 9;
 int speedY = 12;
+int segGround = 350;
 class Player{
     public:
 
@@ -52,8 +53,9 @@ class Player{
             }
             if(rect.x > 0.1f && fmod(rect.x, 1000.0f) < 1.0f){
                 cout << "aumento de velocidadeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" << "\n";
-                velocidade += 3;
-                speedY += 3;
+                velocidade += 1;
+                speedY += 1;
+                segGround -= 25;
             }
             
             if(boolIsDown && !isDeath){
@@ -128,6 +130,7 @@ public:
                 velocidade = 9;
                 boolisGerar = true;
                 speedY = 12;
+                segGround = 350;
                 player.isDeath = true;   
                 grounds.clear();
                 grounds.push_back(300);
@@ -140,7 +143,7 @@ public:
     void GerarParedes(Player& player, Vector2 camera){
         float xGTop = 0;
         float largura = 50; 
-        int segGround = 350;
+        
 
         int ultimoRanom = 400;
         int intervaloRandom;
@@ -148,7 +151,7 @@ public:
 
         
 
-        if(player.rect.x > 0.1f && fmod(player.rect.x, 50.0f) < 1.0f || boolisGerar){//if de geração de paredes EU TO FICANDO LOKO!!
+        if(player.rect.x > 0.1f && fmod(player.rect.x, 100.0f) < 1.0f || boolisGerar){//if de geração de paredes EU TO FICANDO LOKO!!
             
             cout << "gerando mais paredes!!" << "\n";
             //random grounds!!
