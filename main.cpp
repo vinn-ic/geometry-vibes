@@ -103,9 +103,11 @@ class Player{
 class LgGame{
 public:
     bool isMenu;
+    bool isMenuMorte;
     int telaX = 1200;
     int telaY = 900;
     bool boolisGerar = true;
+    int ultimoGerado = 300;
     
 
 
@@ -117,8 +119,10 @@ public:
     vector<Rectangle> groundsForColission = {};
 
     
-    LgGame(bool isMenu = true,Vector2 rect = {350,400}){
+    LgGame(bool isMenu,bool isMenuMorte,Vector2 rect = {350,400}){
         this->isMenu = isMenu;
+        this->isMenuMorte = isMenuMorte;
+        
     }
 
     void colisao(Rectangle rectColission, Player& player){
@@ -128,7 +132,9 @@ public:
                 player.rect.x = spawPadrao;
                 player.rect.y = 300;
                 velocidade = 9;
+                player.pont = 0;
                 boolisGerar = true;
+                isMenuMorte = true;
                 speedY = 12;
                 segGround = 350;
                 player.isDeath = true;   
@@ -139,48 +145,70 @@ public:
         }
 
     }
+    void drawMenu(){
+        int boxWidth = 400;
+        int boxHeight = 200;
+        int boxX = (telaX - boxWidth) / 2;
+        int boxY = (telaY - boxHeight) / 2;
+
+        if (IsKeyPressed(KEY_ENTER)) {
+            isMenu = false;
+        }
+
+        DrawRectangle(boxX, boxY, boxWidth, boxHeight, LIGHTGRAY);
+        DrawText("enter para jogar", telaX / 2, telaY / 2, 20, RED);
+    }
+
+    void drawMenuMorte(Player& player){
+        int boxWidth = 400;
+        int boxHeight = 200;
+        int boxX = (telaX - boxWidth) / 2;
+        int boxY = (telaY - boxHeight) / 2;
+
+        if (IsKeyPressed(KEY_ENTER)) {
+            isMenuMorte = false;
+
+        }
+        DrawRectangle(boxX, boxY, boxWidth, boxHeight, LIGHTGRAY);
+        DrawText("você morreu (@_@) aperte enter", telaX / 2, telaY / 2, 20, RED);
+        DrawText(TextFormat("%.1d Pontuação", player.pont),telaX/2,(telaY/2)+50,20,RED);
+    }
 
     void GerarParedes(Player& player, Vector2 camera){
         float xGTop = 0;
-        float largura = 50; 
-        
-
-        int ultimoRanom = 400;
-        int intervaloRandom;
-        int numberRandom;
-
-        
-
-        if(player.rect.x > 0.1f && fmod(player.rect.x, 100.0f) < 1.0f || boolisGerar){//if de geração de paredes EU TO FICANDO LOKO!!
-            
+        float largura = 50;
+        if(player.rect.x > 0.1f && fmod(player.rect.x, 25.0f) < 1.0f || boolisGerar){//if de geração de paredes EU TO FICANDO LOKO!!
             cout << "gerando mais paredes!!" << "\n";
-            //random grounds!!
+
+            int intervaloRandom;
+            int numberRandom;
+
             random_device rd;
             random_device rd2;
-            
-            
+                
             mt19937 gen(rd());
             mt19937 gen2(rd2());
-            
-            
             uniform_int_distribution<> dist2(50,100);
+            
+            
+            
+
+            uniform_int_distribution<> dist(1,telaY);
+
+            
+
             intervaloRandom = dist2(gen2);
-            
-            uniform_int_distribution<> dist(0,telaY); //numero que pode ser gerados!!
-            
-            
+
             numberRandom = dist(gen);
-            ultimoRanom = numberRandom;
-            
-            
-            
-            if(ultimoRanom > maior){
-                maior = ultimoRanom;
+
+            if(numberRandom > maior){
+                maior = numberRandom;
                 cout << "maior: " << maior << "\n";
-            }else if(ultimoRanom < menor){
-                menor = ultimoRanom;
+            }else if(numberRandom < menor){
+                menor = numberRandom;
                 cout << "menor: " << menor << "\n";
             }
+
             int ultimoElementoArray = grounds.back();
             if(ultimoElementoArray > numberRandom){
                 for(int i = ultimoElementoArray+10; i > numberRandom;i-=10){
@@ -194,8 +222,8 @@ public:
                 
                 cout << "grounds>>"<< grounds.size() << "\n" << "groundsForColission>>" << groundsForColission.size()<< "\n";
                 boolisGerar = false;
-            }//fim do pior if da minha vida!!!!
-                
+        }//fim do pior if da minha vida!!!!
+        
             for(int ground : grounds){
                 if(xGTop > camera.x){
                     float toppAltura = ground - (segGround/2);
@@ -220,10 +248,13 @@ public:
                     
         
             }
+        }
+        
+        
         
 
-    }
     };
+    
 
 //vector<Rectangle> grounds;
 
@@ -236,7 +267,7 @@ int bestPo = 0;
 int main(){
     Player player({spawPadrao,400});
     //350,50
-    LgGame lgGame(true);
+    LgGame lgGame(true,false);
 
     bool isGerour = true;
 
@@ -251,23 +282,13 @@ int main(){
     camera.offset = {1200/3.0f,900/2};
     camera.zoom = 1.0f;
 
-    while (!WindowShouldClose()) {//main loop!!
+    while (!WindowShouldClose()) {//main loop!!!!!!!!!!!!!!!!!!
         BeginDrawing();
         ClearBackground(BLACK);
 
     if (lgGame.isMenu) {
-        int boxWidth = 400;
-        int boxHeight = 200;
-        int boxX = (lgGame.telaX - boxWidth) / 2;
-        int boxY = (lgGame.telaY - boxHeight) / 2;
-
-        if (IsKeyPressed(KEY_ENTER)) {
-            lgGame.isMenu = false;
-        }
-
-        DrawRectangle(boxX, boxY, boxWidth, boxHeight, LIGHTGRAY);
-        DrawText("enter para jogar", lgGame.telaX / 2, lgGame.telaY / 2, 20, RED);
-    } else {
+       lgGame.drawMenu();
+    }else if(!lgGame.isMenuMorte){
         BeginMode2D(camera);
 
         for (size_t i = 0; i < trail.size(); i++) {
@@ -301,6 +322,8 @@ int main(){
 
 
         EndMode2D();
+    }else if(lgGame.isMenuMorte){
+        lgGame.drawMenuMorte(player);
     }
 
     EndDrawing();
